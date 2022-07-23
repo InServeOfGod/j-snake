@@ -1,2 +1,37 @@
 @charset "UTF-8";
 
+/*
+    variables
+*/
+
+:root {
+
+}
+
+/*
+    tag selectors
+*/
+
+body {
+    background: #eee;
+}
+
+/*
+    id selectors
+*/
+
+#status {
+
+}
+
+#canvas {
+    border: 10px dashed #8B4513;
+}
+
+/*
+    class selectors
+*/
+
+/*
+    responsive area
+*/
