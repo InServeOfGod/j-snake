@@ -1,7 +1,5 @@
 "use strict"
 
-// key variables
-
 const left = 37
 const up = 38
 const right = 39
@@ -9,41 +7,73 @@ const down = 40
 
 let pressed_key = right
 
-// snake variables
-
 const canvas = $('#canvas')[0]
 const ctx = canvas.getContext('2d')
 const scoreSpan = $('#status')
-
-// game variables
 
 let block_size = 10
 let snake_size = 0
 let score = 0
 let time = 100
-let timeForFood = time * 10
-let food_time = timeForFood
 let snake_width = block_size
 let snake_height = block_size
+let interval = 0
 
 const canvas_width = $(canvas).attr('width')
 const canvas_height = $(canvas).attr('height')
 
-const snake = [
-    {x: 50, y: canvas_height / 2, oldX: 50, oldY: canvas_height/2},
-    {x: 60, y: canvas_height / 2, oldX: 60, oldY: canvas_height/2},
-    {x: 70, y: canvas_height / 2, oldX: 70, oldY: canvas_height/2},
-    {x: 80, y: canvas_height / 2, oldX: 80, oldY: canvas_height/2},
+const default_snake = [
+    {x: 50, y: canvas_height / 2, oldX: 50, oldY: canvas_height / 2},
+    {x: 60, y: canvas_height / 2, oldX: 60, oldY: canvas_height / 2},
 ]
-
-const food = {x: 100, y: 100, eaten: false}
-
-// snake functions
+let snake = default_snake
+let food = {x: 100, y: 100, eaten: false}
 
 function spawnFood() {
-    ctx.fillStyle = "red"
+    ctx.fillStyle = "#dc3545"
+
+    if (food.eaten) {
+        food = spawnNewFood()
+    }
+
     ctx.fillRect(food.x, food.y, block_size, block_size)
-    console.log(food.x, food.y)
+}
+
+function spawnNewFood() {
+    let xArr = [], yArr = []
+
+    $(snake).each((value, index) => {
+        if ($.inArray(value.x, xArr) !== -1) {
+            xArr.push(value.x)
+        }
+
+        if ($.inArray(value.y, yArr) !== -1) {
+            yArr.push(value.y)
+        }
+    })
+
+    return getEmptyXY(xArr, yArr)
+}
+
+function getEmptyXY(xArr, yArr) {
+    let emptyX = randomNumber(canvas_width - block_size, block_size)
+    let emptyY = randomNumber(canvas_height - block_size, block_size)
+
+    if ($.inArray(emptyX, xArr) === -1 && $.inArray(emptyY, yArr) === -1) {
+        return {
+            x: emptyX,
+            y: emptyY,
+            eaten: false
+        }
+    } else {
+        return getEmptyXY(xArr, yArr)
+    }
+}
+
+function randomNumber(maximum, multiple) {
+    let res = Math.floor(Math.random() * maximum)
+    res = (res % 10 === 0) ? res : res + (multiple - res % 10)
+    return res
 }
 
 function update() {
@@ -57,23 +87,53 @@ function update() {
 
         // fill and log it
 
-        ctx.fillStyle = "green"
+        ctx.fillStyle = "#198754"
         ctx.fillRect(value.x, value.y, snake_width, snake_height)
 
         // eat the food with head
 
         if (index === 0) {
-            if (eat(value.x, value.y)) {
+            if (collide(value.x, value.y)) {
+                stop()
+            }
+
+            else if (eaten(value.x, value.y)) {
+                food.eaten = true
+
+                // plus one for score and make the snake taller
                 score++
                 scoreSpan.text(score)
+                extend()
             }
         }
-
-        console.log(value.x, value.y, snake_size, score)
     })
 }
 
-function eat(x, y) {
+function start() {
+    $('#danger-status').hide()
+    snake = default_snake
+    interval = setInterval(loop, time)
+}
+
+function stop() {
+    clearInterval(interval)
+    $('#danger-status').show()
+}
+
+function extend() {
+    snake.push({
+        x: snake[snake.length - 1].oldX,
+        y: snake[snake.length - 1].oldY
+    })
+}
+
+function collide(x, y) {
+    return snake.filter(((value, index) => {
+        return index !== 0 && value.x === x && value.y === y
+    })).length > 0 || x < 0 || y < 0 || x > canvas_width || y > canvas_height
+}
+
+function eaten(x, y) {
     return food.x === x && food.y === y
 }
 
@@ -152,8 +212,12 @@ function check(temp_key) {
 $(document).ready(() => {
     // game loop
 
-    setInterval(loop, time)
+    start()
 
+/*    $('#restart-btn').click(() => {
+        stop()
+        start()
+    })*/
 
     $(document).keydown((event) => {
         event.preventDefault()

@@ -13,7 +13,7 @@
 */
 
 body {
-    background: #eee;
+    background: var(--bs-light);
 }
 
 /*
@@ -25,7 +25,7 @@ body {
 }
 
 #canvas {
-    border: 10px dashed #8B4513;
+    border: 10px solid var(--bs-danger);
 }
 
 /*
